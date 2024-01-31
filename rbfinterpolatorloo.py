@@ -1,6 +1,7 @@
 
 import numpy as np
 
+from scipy.spatial import KDTree
 from scipy.interpolate import RBFInterpolator
 from scipy.interpolate import _rbfinterp as _rbfinterp
 
@@ -30,8 +31,8 @@ def _build_and_solve_system(y, d, smoothing, kernel, epsilon, powers):
         Domain shift used to create the polynomial matrix.
     scale : (N,) float ndarray
         Domain scaling used to create the polynomial matrix.
-
     """
+    
     lhs, rhs, shift, scale = _rbfinterp._build_system(
         y, d, smoothing, kernel, epsilon, powers
         )
@@ -165,6 +166,7 @@ class RBFLOOCVInterpolator(RBFInterpolator):
     """
     Allow different data to be provided to RBF.
     """
+    
     if d is None:
       out = self(x)
     else:
@@ -187,7 +189,7 @@ class RBFLOOCVInterpolator(RBFInterpolator):
               _coeffs,
               memory_budget=memory_budget)
       else:
-        raise RuntimeError('xxx does not supported `self.neighbors is not None`')
+        raise RuntimeError('Changing RHS (data matrix) is not supported with `self.neighbors`)
 
       out = out.view(self.d_dtype)
       d_shape = d.shape[1]
@@ -237,8 +239,8 @@ class RBFLOOCVInterpolator(RBFInterpolator):
       -------
       (Q, ...) ndarray
           Values of the interpolant at `x`.
-
       """
+      
       x = np.asarray(x, dtype=float, order="C")
       if x.ndim != 2:
           raise ValueError("`x` must be a 2-dimensional array.")
@@ -266,7 +268,7 @@ class RBFLOOCVInterpolator(RBFInterpolator):
               _coeffs,
               memory_budget=memory_budget)
       else:
-        raise RuntimeError('LOOCV does not supported `self.neighbors is not None`')
+        raise RuntimeError('LOOCV is not supported with `self.neighbors`')
 
       out = out.view(self.d_dtype)
       out = out.reshape((nx, ) + self.d_shape)
@@ -285,14 +287,12 @@ class RBFLOOCVInterpolator(RBFInterpolator):
       -------
       (Q, ...) ndarray
           Values of the interpolant at `x`.
-
       """
 
       nx = 1
 
       _x = np.zeros((1, self.y.shape[1]))
       _x[0, :] = self.y[index, :]
-      print(_x)
       _out = np.zeros((1, self.d.shape[1]))
       _out[0, :] = self.d[index, :]
 
@@ -314,7 +314,7 @@ class RBFLOOCVInterpolator(RBFInterpolator):
               _coeffs,
               memory_budget=memory_budget)
       else:
-        raise RuntimeError('LOOCV does not supported `self.neighbors is not None`')
+        raise RuntimeError('LOOCV is not supported with `self.neighbors`')
 
       out = out.view(self.d_dtype)
       out = out.reshape((nx, ) + self.d_shape)
