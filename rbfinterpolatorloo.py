@@ -32,7 +32,7 @@ def _build_and_solve_system(y, d, smoothing, kernel, epsilon, powers):
     scale : (N,) float ndarray
         Domain scaling used to create the polynomial matrix.
     """
-    
+
     lhs, rhs, shift, scale = _rbfinterp._build_system(
         y, d, smoothing, kernel, epsilon, powers
         )
@@ -166,7 +166,7 @@ class RBFLOOCVInterpolator(RBFInterpolator):
     """
     Allow different data to be provided to RBF.
     """
-    
+
     if d is None:
       out = self(x)
     else:
@@ -189,7 +189,7 @@ class RBFLOOCVInterpolator(RBFInterpolator):
               _coeffs,
               memory_budget=memory_budget)
       else:
-        raise RuntimeError('Changing RHS (data matrix) is not supported with `self.neighbors`)
+        raise RuntimeError('Changing RHS (data matrix) is not supported with `self.neighbors`')
 
       out = out.view(self.d_dtype)
       d_shape = d.shape[1]
@@ -240,7 +240,7 @@ class RBFLOOCVInterpolator(RBFInterpolator):
       (Q, ...) ndarray
           Values of the interpolant at `x`.
       """
-      
+
       x = np.asarray(x, dtype=float, order="C")
       if x.ndim != 2:
           raise ValueError("`x` must be a 2-dimensional array.")
