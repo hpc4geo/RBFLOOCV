@@ -142,8 +142,8 @@ def example_rbf():
 
   view = False
 
-  M = 300000
-  Nsnaps = 400
+  M = 1000000
+  Nsnaps = 20
   col2drop = 2
 
 
@@ -221,6 +221,7 @@ def example_rbf():
 
   print('cost brute force', ( '%1.4e' % (t_brute * Nsnaps)), '(sec)')
   print('cost fast       ', ( '%1.4e' % (t_fast * Nsnaps)), '(sec)')
+  print('ratio           ', ( '%1.4e' % (t_brute / t_fast)))
 
 
 if __name__ == '__main__':
