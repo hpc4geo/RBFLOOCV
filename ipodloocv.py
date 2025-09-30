@@ -62,7 +62,11 @@ def svd_rbf_loocv(r, params, u, alpha, col_index):
 
     _alpha2 = np.copy(alpha)
     _alpha2[:, col_index] = 0
+
+    t_svd = time.perf_counter()
     _u2, _s2, _vt2 = np.linalg.svd(_alpha2, full_matrices=False)
+    t_svd = time.perf_counter() - t_svd
+    print('     svd(s vt)', ('%1.4e' % t_svd), '(sec)')
 
     #print('u _u2\n', u @ _u2) # compare the first N-1 columns with the reduced u
 
@@ -84,7 +88,10 @@ def svd_rbf_loocv(r, params, u, alpha, col_index):
 
     #print('_alpha\n', _alpha4)
 
+    t_rb = time.perf_counter()
     rb_loo = RBFInterpolator(_params, _alpha4, kernel=r.kernel)
+    t_rb = time.perf_counter() - t_rb
+    print('     rbf(P)', ('%1.4e' % t_rb), '(sec)')
 
     test_param = np.zeros((1,params.shape[1]))
     test_param[0, :] = params[col_index, :]
@@ -97,7 +104,12 @@ def svd_rbf_loocv(r, params, u, alpha, col_index):
     #slots = slots[_idx]
     #weights[slots] = _weights[:]
     #print(weights)
-    x_loo = u @ _u2 @ _weights.T
+    t_mat = time.perf_counter()
+    x_tmp = _u2 @ _weights.T
+    x_loo = u @ x_tmp
+    t_mat = time.perf_counter() - t_mat
+    print('     mat-mat-mult', ('%1.4e' % t_mat), '(sec)')
+
     x_loo.shape = (x_loo.shape[0], 1)
 
     return x_loo
