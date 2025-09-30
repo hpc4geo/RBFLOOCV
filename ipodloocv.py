@@ -1,10 +1,12 @@
 import numpy as np
 from scipy.interpolate import RBFInterpolator
 
+
 def gen_matrix(M, N):
     A = np.random.random((M,N))
     u,s,vt = np.linalg.svd(A, full_matrices=False)
     return A, u, s, vt
+
 
 def split_matrix(A, col_index):
     As = np.zeros((A.shape[0],A.shape[1]-1))
@@ -17,10 +19,12 @@ def split_matrix(A, col_index):
     u,s,vt = np.linalg.svd(As, full_matrices=False)
     return As, u, s, vt
 
+
 def drop_index(u, s, vt, col_index):
     _vt = np.copy(vt)
     _vt[:, col_index] = 0
     print(u @ np.diag(s) @ _vt)
+
 
 def svd_drop_col(u, s, vt, col_index):
     _alpha2 = np.diag(s) @ vt
@@ -29,6 +33,7 @@ def svd_drop_col(u, s, vt, col_index):
     _u, _s, _vt = np.linalg.svd(_alpha2, full_matrices=False)
 
     return _u, _s, _vt
+
 
 def svd_rbf_loocv(r, params, u, alpha, col_index):
     """
@@ -96,7 +101,7 @@ def svd_rbf_loocv(r, params, u, alpha, col_index):
     return x_loo
 
 
-def example1():
+def example_svd():
   col2drop = 2
 
   Nsnaps = 4
@@ -119,11 +124,7 @@ def example1():
   print('a_recon\n',u @ _u @np.diag(_s) @ _vt)
 
 
-if __name__ == '__main__':
-  np.random.seed(0)
-
-  example1()
-
+def example_rbf():
   col2drop = 2
   Nsnaps = 4
 
@@ -146,6 +147,7 @@ if __name__ == '__main__':
   weights = rb_all(test_param)
   print(weights)
   print(u @ weights.T)
+
 
   print('== Brute force ==')
   As, us, ss, vts = split_matrix(A, col2drop)
@@ -175,3 +177,10 @@ if __name__ == '__main__':
   print('== Efficient ==')
   x_loo = svd_rbf_loocv(rb_all, params, u, np.diag(s) @ vt, col2drop)
   print('x_loo\n', x_loo,  x_loo.shape)
+
+
+if __name__ == '__main__':
+  np.random.seed(0)
+
+  #example_svd()
+  example_rbf()
