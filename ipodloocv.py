@@ -1,3 +1,5 @@
+
+import time
 import numpy as np
 from scipy.interpolate import RBFInterpolator
 
@@ -125,11 +127,21 @@ def example_svd():
 
 
 def example_rbf():
-  col2drop = 2
-  Nsnaps = 4
 
-  A, u, s, vt = gen_matrix(6, Nsnaps)
-  print('A\n', A)
+  view = False
+
+  M = 300000
+  Nsnaps = 400
+  col2drop = 2
+
+
+
+  print('== Generate and factor matrix ==')
+  t_gen = time.perf_counter()
+  A, u, s, vt = gen_matrix(M, Nsnaps)
+  t_gen = time.perf_counter() - t_gen
+  if view: print('A\n', A)
+  print('SVD(A)', ('%1.4e' % t_gen), '(sec)')
 
   p1 = np.linspace(0.0, 1.0, Nsnaps)
   p2 = np.linspace(1.0, 2.0, Nsnaps)
@@ -140,19 +152,24 @@ def example_rbf():
   alpha = np.diag(s) @ vt
   _alpha = np.copy(alpha.T)
 
+  print('== Original RBF ==')
+  t_rbf = time.perf_counter()
   rb_all = RBFInterpolator(params, _alpha, kernel="linear")
+  t_rbf = time.perf_counter() - t_rbf
+  print('RBF(s vt)', ('%1.4e' % t_rbf), '(sec)')
 
   test_param = np.zeros((1,2))
   test_param[0, 0], test_param[0, 1] = p1[0], p2[0]
   weights = rb_all(test_param)
-  print(weights)
-  print(u @ weights.T)
+  if view: print(weights)
+  if view: print(u @ weights.T)
 
 
   print('== Brute force ==')
+  t_brute = time.perf_counter()
   As, us, ss, vts = split_matrix(A, col2drop)
-  print('As\n',As)
-  print('us\n', us)
+  if view: print('As\n',As)
+  if view: print('us\n', us)
 
   _idx = np.zeros(params.shape[0], dtype=np.bool_)
   _idx[:] = True
@@ -164,19 +181,34 @@ def example_rbf():
   _alpha = np.copy(alpha.T)
 
   rb_bruteforce = RBFInterpolator(_params, _alpha, kernel="linear")
-  print('_alpha\n', _alpha)
+  if view: print('_alpha\n', _alpha)
 
   test_param = np.zeros((1,2))
   test_param[0, 0], test_param[0, 1] = p1[col2drop], p2[col2drop]
   weights = rb_bruteforce(test_param)
-  print('weights\n', weights)
+  if view: print('weights\n', weights)
+
   x_loo = us @ weights.T
-  print('x_loo\n', x_loo, x_loo.shape)
+  t_brute = time.perf_counter() - t_brute
+
+  if view: print('x_loo\n', x_loo, x_loo.shape)
+  print('RBF-SVD-BRUTE(s vt)', ('%1.4e' % t_brute), '(sec)')
 
 
   print('== Efficient ==')
-  x_loo = svd_rbf_loocv(rb_all, params, u, np.diag(s) @ vt, col2drop)
-  print('x_loo\n', x_loo,  x_loo.shape)
+  t_fast = time.perf_counter()
+  x_loo_e = svd_rbf_loocv(rb_all, params, u, np.diag(s) @ vt, col2drop)
+  t_fast = time.perf_counter() - t_fast
+  print('RBF-SVD-FAST(s vt)', ('%1.4e' % t_fast), '(sec)')
+
+  if view: print('x_loo\n', x_loo_e,  x_loo.shape)
+
+  diff = np.absolute(x_loo - x_loo_e)
+  print('max diff', np.max(diff))
+
+
+  print('cost brute force', ( '%1.4e' % (t_brute * Nsnaps)), '(sec)')
+  print('cost fast       ', ( '%1.4e' % (t_fast * Nsnaps)), '(sec)')
 
 
 if __name__ == '__main__':
